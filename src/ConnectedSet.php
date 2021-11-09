@@ -42,18 +42,36 @@ class ConnectedSet implements Set
             : $anEnd;
     }
 
-    public function or(ConnectedSet $set): Set
+    private function proxyToArgument(Set $set): bool
     {
+        $className = $set::class;
+
+        return $className == EmptySet::class
+            || $className == DisconnectedSet::class;
+    }
+
+    
+    public function or(Set $set): Set
+    {
+        if ($this->proxyToArgument($set)) {
+            return $set->or($this);
+        }
         //TODO
     }
     
-    public function and(ConnectedSet $set): ConnectedSet
+    public function and(Set $set): ConnectedSet
     {
+        if ($this->proxyToArgument($set)) {
+            return $set->or($this);
+        }
         //TODO
     }
 
-    public function xor(ConnectedSet $set): Set
+    public function xor(Set $set): Set
     {
+        if ($this->proxyToArgument($set)) {
+            return $set->or($this);
+        }
         //TODO
     }
 
