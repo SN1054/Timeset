@@ -7,7 +7,7 @@ class LeftBoundary extends Boundary
     public function __construct(DateTimeInterface|string $point, bool $included = true)
     {
         if (is_string($point)) {
-            if ($point !== self::MINUS_INFINITY) {
+            if ($point !== self::PLUS_INFINITY) {
                 throw new Exception();
             }
 
@@ -23,8 +23,8 @@ class LeftBoundary extends Boundary
 
     public function smallerThan(Boundary $boundary): bool
     {
-        if ($this->point == self::MINUS_INFINITY) {
-            return $boundary->point() !== self::MINUS_INFINITY;
+        if ($this->point == self::PLUS_INFINITY) {
+            return $boundary->point() !== self::PLUS_INFINITY;
         }
 
         if ($this->point < $boundary->point()) {
@@ -37,7 +37,7 @@ class LeftBoundary extends Boundary
 
         if ($this->point == $boundary->point()) {
             if ($boundary::class == $this::class) {
-                return $this->included;
+                return !$this->included;
             }
 
             return false;
