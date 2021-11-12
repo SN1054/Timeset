@@ -10,83 +10,200 @@ use Exception;
 
 class ConnectedSet implements Set
 {
-    private DateTimeImmutable|string $beginning;
-    private string $leftBoundary;
-    private DateTimeImmutable|string $end;
-    private string $rightBoundary;
-
     public function __construct(
-        DateTimeInterface|string $aBeginning, 
-        DateTimeInterface|string $anEnd,
-        string $leftBoundary = self::INCLUDED,
-        string $rightBoundary = self::INCLUDED
-    ) {
-        if (is_string($aBeginning) && $aBeginning !== self::MINUS_INFINITY) {
-            throw new Exception();
-        }
-
-        if (is_string($anEnd) && $anEnd !== self::PLUS_INFINITY) {
-            throw new Exception();
-        }
-
-        if ($beginning > $end) {
-            throw new Exception();
-        }
-
-        $this->beginning = $aBeginning instanceof DateTime 
-            ? DateTimeImmutable::createFromMutable($aBeginning)
-            : $aBeginning;
-
-        $this->end = $anEnd instanceof DateTime 
-            ? DateTimeImmutable::createFromMutable($anEnd)
-            : $anEnd;
-    }
-
-    private function proxyToArgument(Set $set): bool
+        private LeftBoundary $leftBoundary,
+        private RightBoundary $rightBoundary
+    ) 
     {
-        $className = $set::class;
-
-        return $className == EmptySet::class
-            || $className == DisconnectedSet::class;
     }
+
+    //private function proxyToArgument(Set $set): bool
+    //{
+        //$className = $set::class;
+
+        //return $className == EmptySet::class
+            //|| $className == DisconnectedSet::class;
+    //}
 
     
     public function or(Set $set): Set
     {
-        if ($this->proxyToArgument($set)) {
+        if ($set instanceof EmptySet) {
             return $set->or($this);
         }
-        //TODO
+
+        if ($set instanceof ConnectedSet) {
+            return $this->orForConnected($set);
+        }
+
+        # return $this->fromArray(array_merge($set, $this));
+        //return new DisconnectedSet(...array_merge($set, $this));
+        return Set::fromArray();
+    }
+
+    private function orForConnected(ConnectedSet $set): Set
+    {
+        extract($this->sort($set));
+
+        if ($first->rightBoundary()->lessThan($second->leftBoundary())){
+            return new DisconnectedSet($first, $second);
+        }
+
+        $rightBoundary = $this->rightBoundary->greaterThatOrEqual($set->rightBoundary()) 
+            ? $this->rightBoundary 
+            : $set->rightBoundary();
+
+        return new ConnectedSet($first->leftBoundary(), $rightBoundary);
+    }
+
+    private function sort($set): array
+    {
+        return $this->leftBoundary->lessThanOrEqual($set->leftBoundary())
+            ? ['first' => $this, 'second' => $set]
+            : ['first' => $set, 'second' => $this];
     }
     
-    public function and(Set $set): ConnectedSet
+    public function and(Set $set): Set
     {
-        if ($this->proxyToArgument($set)) {
-            return $set->or($this);
+        if ($set instanceof EmptySet) {
+            return $set->and($this);
         }
-        //TODO
+
+        if ($set instanceof ConnectedSet) {
+            return $this->andForConnected($set);
+        }
+
+        $result = [];
+        foreach ($set as $connectedSet) {
+            if (false === ($element = $this->andForConnected($connectedSet))->isEmpty()) {
+                $result[] = $element;
+            }
+        }
+
+        switch (count($result)) {
+            case 0:
+                return new EmptySet();
+                break;
+            case 1:
+                return new ConnectedSet($result[0]);
+                break;
+            default:
+                return new DisconnectedSet(...$result);
+        }
+    }
+
+    private function andForConnected(ConnectedSet $set): ConnectedSet|EmptySet
+    {
+        extract($this->sort($set));
+
+        if ($first->rightBoundary()->lessThan($second->leftBoundary())){
+            return new EmptySet();
+        }
+
+        return new ConnectedSet($second->leftBoundary(), $first->rightBoundary());
     }
 
     public function xor(Set $set): Set
     {
-        if ($this->proxyToArgument($set)) {
-            return $set->or($this);
+        if ($set instanceof EmptySet) {
+            return $set->xor($this);
         }
-        //TODO
+
+        # (A or B) and (not(A and B))
+        return $this->or($set)->and(
+            ($this->and($set))->not()
+        );
     }
 
-    public function not(): DisconnectedSet
+    public function not(): Set
     {
-        //TODO
+        if ($this->leftBoundary->point() == Boundary::MINUS_INFINITY
+            && $this->rightBoundary->point() == Boundary::PLUS_INFINITY
+        ) {
+            return new EmptySet();
+        }
+
+        if ($this->leftBoundary->point() == Boundary::MINUS_INFINITY) {
+            return new ConnectedSet(
+                new LeftBoundary($this->rightBoundary->point(), !$this->rightBoundary->included()),
+                new RightBoundary(Boundary::PLUS_INFINITY)
+            );
+        }
+
+        if ($this->rightBoundary->point() == Boundary::PLUS_INFINITY) {
+            return new ConnectedSet(
+                new LeftBoundary(Boundary::MINUS_INFINITY),
+                new RightBoundary($this->leftBoundary->point(), !$this->leftBoundary->included())
+            );
+        }
+
+        return new DisconnectedSet(
+            new ConnectedSet(
+                new LeftBoundary(Boundary::MINUS_INFINITY),
+                new RightBoundary($this->leftBoundary->point(), !$this->leftBoundary->included())
+            ),
+            new ConnectedSet(
+                new LeftBoundary($this->rightBoundary->point(), $this->rightBoundary->included()),
+                new RightBoundary(Boundary::PLUS_INFINITY)
+            )
+        );
     }
 
     public function length(): DateInterval|string
     {
-        //TODO
+        if (
+            $this->leftBoundary->point() == Boundary::MINUS_INFINITY
+            && $this->rightBoundary->point() == Boundary::PLUS_INFINITY
+        ) {
+            return Set::INFINITY;
+        }
+
+        return $this->leftBoundary->point()->diff($this->rightBoundary->point());
     }
 
     public function shift(DateInterval $interval): ConnectedSet
     {
-        //TODO
+        //Move all this logic to Boundary class
+        //Boundary needs isInfinite() method
+        if ($this->leftBoundary->point() == Boundary::MINUS_INFINITY) {
+            return new ConnectedSet(
+                $this->leftBoundary,
+                new RightBoundary(
+                    $this->rightBoundary->add($interval), 
+                    $this->rightBoundary->included()
+                )
+            );
+        }
+
+        if ($this->rightBoundary->point() == Boundary::PLUS_INFINITY) {
+            return new ConnectedSet(
+                new LeftBoundary(
+                    $this->leftBoundary->add($interval), 
+                    $this->leftBoundary->included()
+                ),
+                $this->rightBoundary
+            );
+        }
+
+        return new ConnectedSet(
+            new LeftBoundary(
+                $this->leftBoundary->add($interval), 
+                $this->leftBoundary->included()
+            ),
+            new RightBoundary(
+                $this->rightBoundary->add($interval), 
+                $this->rightBoundary->included()
+            )
+        );
+    }
+
+    public function isPoint(): bool
+    {
+        return $this->leftBoundary->point() == $this->rightBoundary->point();
+    }
+
+    public function isEmpty(): bool
+    {
+        return false;
     }
 }

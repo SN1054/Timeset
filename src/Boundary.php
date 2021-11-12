@@ -11,12 +11,15 @@ abstract class Boundary
     public const PLUS_INFINITY = 'plus_infinity';
 
     abstract public function smallerThan(Boundary $boundary): bool;
-    //abstract public function biggerThan(Boundary $boundary): bool;
-    //abstract public function equals(Boundary $boundary): bool;
 
     public function point(): DateTimeImmutable|string
     {
         return $this->point;
+    }
+
+    public function included(): bool
+    {
+        return $this->included;
     }
 
     public function equals(Boundary $boundary): bool
