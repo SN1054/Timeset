@@ -1,0 +1,7 @@
+{
+    "autoload": {
+        "psr-4": {
+            "SN1054\\Timeset\\": "src/" 
+        }
+    }
+}
