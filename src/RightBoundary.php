@@ -2,7 +2,11 @@
 
 namespace SN1054\Timeset;
 
-class LeftBoundary extends Boundary
+use DateTimeInterface;
+use DateTimeImmutable;
+use DateTime;
+
+class RightBoundary extends Boundary
 {
     public function __construct(DateTimeInterface|string $point, bool $included = true)
     {
@@ -21,7 +25,8 @@ class LeftBoundary extends Boundary
         $this->included = $included;
     }
 
-    public function smallerThan(Boundary $boundary): bool
+    // TODO written poorly
+    public function lessThan(Boundary $boundary): bool
     {
         if ($this->point == self::PLUS_INFINITY) {
             return $boundary->point() !== self::PLUS_INFINITY;
@@ -31,7 +36,7 @@ class LeftBoundary extends Boundary
             return true;
         }
 
-        if ($this->equals($boundary)) {
+        if ($this->equal($boundary)) {
             return false;
         }
 
@@ -42,5 +47,7 @@ class LeftBoundary extends Boundary
 
             return false;
         }
+
+        return false;
     }
 }

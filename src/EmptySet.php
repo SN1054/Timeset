@@ -2,7 +2,7 @@
 
 namespace SN1054\Timeset;
 
-class EmptySet implements Set
+class EmptySet extends Set
 {
     public function or(Set $set): Set
     {

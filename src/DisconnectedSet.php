@@ -3,8 +3,9 @@
 namespace SN1054\Timeset;
 
 use DateInterval;
+use Exception;
 
-class DisconnectedSet implements Set
+class DisconnectedSet extends Set
 {
     /**
      * @var Set[]
@@ -13,41 +14,17 @@ class DisconnectedSet implements Set
 
     public function __construct(ConnectedSet ...$sets)
     {
-        $set = Set::fromArray($sets);
-
-        if (!$set instanceof DisconnectedSet) {
+        if ($sets !== Set::normalize(...$sets)) {
+            var_dump($sets, Set::normalize(...$sets));
             throw new Exception();
         }
 
-        return $set;
-
+        $this->sets = $sets;
     }
 
     public function sets(): array
     {
         return $this->sets;
-    }
-
-    public static function normalize(ConnectedSet ...$sets): array
-    {
-        usort($sets, function($a, $b) {
-            if ($a->leftBoundary()->equals($b->leftBoundary())) {
-                return 0;
-            }
-
-            return $a->leftBoundary()->lessThan($b->leftBoundary()) ? -1 : 1; 
-        });
-
-        for ($i = 0; $i < count($sets) - 1; $i++) {
-            if (false === $sets[$i]->and($sets[$i + 1])->isEmpty()) {
-                $sets[$i + 1] = $sets[$i]->or($sets[$i + 1]);
-                unset($sets[$i]);
-            }
-
-            //if ($i + 1 == array_key_last($sets)) {
-                //break;
-            //}
-        }
     }
 
     public function or(Set $set): Set
@@ -74,7 +51,7 @@ class DisconnectedSet implements Set
 
             switch ($temp::class) {
             case EmptySet::class:
-                continue;
+                continue 2;
             case ConnectedSet::class:
                 $result[] = $temp;
                 break;

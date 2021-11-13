@@ -2,6 +2,10 @@
 
 namespace SN1054\Timeset;
 
+use DateTimeImmutable;
+use Exception;
+use DateTimeInterface;
+
 abstract class Set
 {
     public const INFINITY = 'infinity';
@@ -21,7 +25,7 @@ abstract class Set
 
         foreach ($values as $value) {
             if (is_string($value)) {
-                if (!$this->stringHasValidFormat($value)) {
+                if (!self::stringHasValidFormat($value)) {
                     throw new Exception();
                 }
 
@@ -30,11 +34,17 @@ abstract class Set
                 continue;
             }
 
+            if ($value instanceof DateTimeInterface) {
+                $sets[] = ConnectedSet::createPoint($value);
+
+                continue;
+            }
+
             if (is_array($value)) {
                 if (
-                    (!$this->stringHasValidFormat($value[0]) 
+                    (!self::stringHasValidFormat($value[0]) 
                         && !($value[0] instanceof DateTimeInterface)
-                    ) || (!$this->stringHasValidFormat($value[1]) 
+                    ) || (!self::stringHasValidFormat($value[1]) 
                         && !($value[1] instanceof DateTimeInterface)
                     ) || count($value) !== 2
                 ) {
@@ -71,14 +81,17 @@ abstract class Set
             return new EmptySet();
         }
 
-        $sets = $this->normalize($sets);
+        //var_dump($sets);
+        //die();
+
+        $sets = self::normalize(...$sets);
 
         return count($sets) === 1 
-            ? new ConnectedSet($sets[0]) 
+            ? $sets[0] 
             : new DisconnectedSet(...$sets);
     }
 
-    private function stringHasValidFormat(string $string): bool
+    private static function stringHasValidFormat(string $string): bool
     {
         try {
             new DateTimeImmutable($string);
@@ -88,26 +101,23 @@ abstract class Set
         }
     }
 
-    private function normalize(ConnectedSet ...$sets): array
+    public static function normalize(ConnectedSet ...$sets): array
     {
         usort($sets, function($a, $b) {
-            if ($a->leftBoundary()->equals($b->leftBoundary())) {
+            if ($a->leftBoundary()->equal($b->leftBoundary())) {
                 return 0;
             }
 
             return $a->leftBoundary()->lessThan($b->leftBoundary()) ? -1 : 1; 
         });
 
-        for ($i = 0; $i < count($sets) - 1; $i++) {
+        for ($i = 0; $i < array_key_last($sets); $i++) {
             if (false === $sets[$i]->and($sets[$i + 1])->isEmpty()) {
                 $sets[$i + 1] = $sets[$i]->or($sets[$i + 1]);
                 unset($sets[$i]);
             }
-
-            //if ($i + 1 == array_key_last($sets)) {
-                //break;
-            //}
         }
-    }
 
+        return array_values($sets);
+    }
 }

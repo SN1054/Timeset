@@ -8,11 +8,12 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use Exception;
 
-class ConnectedSet implements Set
+class ConnectedSet extends Set
 {
     public function __construct(
         private LeftBoundary $leftBoundary,
         private RightBoundary $rightBoundary
+        //TODO check for consistency of point
     ) 
     {
     }
@@ -25,15 +26,16 @@ class ConnectedSet implements Set
         );
     }
 
-    //private function proxyToArgument(Set $set): bool
-    //{
-        //$className = $set::class;
+    public function leftBoundary(): LeftBoundary
+    {
+        return $this->leftBoundary;
+    }
 
-        //return $className == EmptySet::class
-            //|| $className == DisconnectedSet::class;
-    //}
+    public function rightBoundary(): RightBoundary
+    {
+        return $this->rightBoundary;
+    }
 
-    
     public function or(Set $set): Set
     {
         if ($set instanceof EmptySet) {
@@ -44,8 +46,6 @@ class ConnectedSet implements Set
             return $this->orForConnected($set);
         }
 
-        # return $this->fromArray(array_merge($set, $this));
-        //return new DisconnectedSet(...array_merge($set, $this));
         return Set::fromArray();
     }
 
@@ -57,7 +57,7 @@ class ConnectedSet implements Set
             return new DisconnectedSet($first, $second);
         }
 
-        $rightBoundary = $this->rightBoundary->greaterThatOrEqual($set->rightBoundary()) 
+        $rightBoundary = $this->rightBoundary->greaterThanOrEqual($set->rightBoundary()) 
             ? $this->rightBoundary 
             : $set->rightBoundary();
 
@@ -171,8 +171,7 @@ class ConnectedSet implements Set
 
     public function shift(DateInterval $interval): ConnectedSet
     {
-        //Move all this logic to Boundary class
-        //Boundary needs isInfinite() method
+        //TODO Move all this logic to Boundary class. Boundary needs isInfinite() and add() methods
         if ($this->leftBoundary->point() == Boundary::MINUS_INFINITY) {
             return new ConnectedSet(
                 $this->leftBoundary,
