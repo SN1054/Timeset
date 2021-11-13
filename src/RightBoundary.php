@@ -5,6 +5,7 @@ namespace SN1054\Timeset;
 use DateTimeInterface;
 use DateTimeImmutable;
 use DateTime;
+use DateInterval;
 use Exception;
 
 class RightBoundary extends Boundary
@@ -25,6 +26,30 @@ class RightBoundary extends Boundary
 
         $this->included = $included;
     }
+
+    public function isInfinite(): bool
+    {
+        return $this->point === self::PLUS_INFINITY;
+    }
+
+    public function invert(): LeftBoundary
+    {
+        return new LeftBoundary(
+            $this->point,
+            !$this->included
+        );
+    }
+
+    /**
+     * @psalm-suppress PossiblyInvalidMethodCall
+     */
+    public function add(DateInterval $interval): self
+    {
+        return $this->isInfinite() 
+            ? clone $this 
+            : new self($this->point->add($interval), $this->included);
+    }
+
 
     // TODO written poorly
     public function lessThan(Boundary $boundary): bool

@@ -3,6 +3,7 @@
 namespace SN1054\Timeset;
 
 use DateTimeImmutable;
+use DateInterval;
 
 abstract class Boundary
 {
@@ -13,6 +14,9 @@ abstract class Boundary
     public const PLUS_INFINITY = 'plus_infinity';
 
     abstract public function lessThan(Boundary $boundary): bool;
+    abstract public function isInfinite(): bool;
+    abstract public function invert(): self;
+    abstract public function add(DateInterval $interval): self;
 
     public function point(): DateTimeImmutable|string
     {
