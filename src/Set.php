@@ -10,6 +10,11 @@ abstract class Set
     abstract public function xor(Set $set): Set;
     abstract public function not(): Set;
 
+    public function isEmpty(): bool
+    {
+        return static::class === EmptySet::class;
+    }
+
     public static function create(array $values): Set
     {
         $sets = [];

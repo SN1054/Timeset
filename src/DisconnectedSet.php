@@ -128,9 +128,4 @@ class DisconnectedSet implements Set
             $this->sets
         );
     }
-
-    public function isEmpty(): bool
-    {
-        return false;
-    }
 }

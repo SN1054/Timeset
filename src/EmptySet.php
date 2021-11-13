@@ -23,9 +23,4 @@ class EmptySet implements Set
     {
         return new ConnectedSet(Set::MINUS_INFINITY, Set::PLUS_INFINITY);
     }
-
-    public function isEmpty(): bool
-    {
-        return true;
-    }
 }

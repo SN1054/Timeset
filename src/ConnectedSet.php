@@ -209,9 +209,4 @@ class ConnectedSet implements Set
     {
         return $this->leftBoundary->point() == $this->rightBoundary->point();
     }
-
-    public function isEmpty(): bool
-    {
-        return false;
-    }
 }
