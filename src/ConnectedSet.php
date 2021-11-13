@@ -46,7 +46,8 @@ class ConnectedSet extends Set
             return $this->orForConnected($set);
         }
 
-        return Set::fromArray();
+        /** @var DisconnectedSet $set */
+        return Set::create(array_merge($set->sets(), [$this]));
     }
 
     private function orForConnected(ConnectedSet $set): Set
@@ -66,11 +67,20 @@ class ConnectedSet extends Set
 
     private function sort($set): array
     {
-        return $this->leftBoundary->lessThanOrEqual($set->leftBoundary())
+        if ($this->leftBoundary->equal($set->leftBoundary())) {
+            return $this->rightBoundary->lessThanOrEqual($set->rightBoundary())
+                ? ['first' => $this, 'second' => $set]
+                : ['first' => $set, 'second' => $this];
+        }
+
+        return $this->leftBoundary->lessThan($set->leftBoundary())
             ? ['first' => $this, 'second' => $set]
             : ['first' => $set, 'second' => $this];
     }
     
+    /**
+     * @psalm-suppress PossiblyInvalidArgument
+     */
     public function and(Set $set): Set
     {
         if ($set instanceof EmptySet) {
@@ -81,8 +91,9 @@ class ConnectedSet extends Set
             return $this->andForConnected($set);
         }
 
+        /** @var ConnectedSet[] $result */
         $result = [];
-        foreach ($set as $connectedSet) {
+        foreach ($set->sets() as $connectedSet) {
             if (false === ($element = $this->andForConnected($connectedSet))->isEmpty()) {
                 $result[] = $element;
             }

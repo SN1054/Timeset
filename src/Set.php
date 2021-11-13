@@ -81,9 +81,6 @@ abstract class Set
             return new EmptySet();
         }
 
-        //var_dump($sets);
-        //die();
-
         $sets = self::normalize(...$sets);
 
         return count($sets) === 1 

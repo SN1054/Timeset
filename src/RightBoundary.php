@@ -30,7 +30,7 @@ class RightBoundary extends Boundary
     public function lessThan(Boundary $boundary): bool
     {
         if ($this->point == self::PLUS_INFINITY) {
-            return $boundary->point() !== self::PLUS_INFINITY;
+            return false;
         }
 
         if ($this->point < $boundary->point()) {

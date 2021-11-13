@@ -9,14 +9,13 @@ use Exception;
 class DisconnectedSet extends Set
 {
     /**
-     * @var Set[]
+     * @var ConnectedSet[]
      */
     private array $sets;
 
     public function __construct(ConnectedSet ...$sets)
     {
         if ($sets !== Set::normalize(...$sets)) {
-            var_dump($sets, Set::normalize(...$sets));
             throw new Exception();
         }
 
@@ -34,8 +33,8 @@ class DisconnectedSet extends Set
             return $set->or($this);
         }
 
-        # $set instanceof DisconnectedSet
-        return Set::fromArray(array_merge($this->sets(), $set->sets()));
+        /** @var DisconnectedSet $set */
+        return Set::create(...array_merge($this->sets(), $set->sets()));
     }
     
     public function and(Set $set): Set
@@ -44,11 +43,11 @@ class DisconnectedSet extends Set
             return $set->and($this);
         }
 
-        # $set instanceof DisconnectedSet
         $result = [];
 
-        foreach ($set as $connectedSet) {
-            $temp = $connectedSet->and($this);
+        foreach ($this->sets as $connectedSet) {
+            /** @var DisconnectedSet $set */
+            $temp = $connectedSet->and($set);
 
             switch ($temp::class) {
             case EmptySet::class:
@@ -61,7 +60,7 @@ class DisconnectedSet extends Set
             }
         }
 
-        return Set::fromArray($result);
+        return new self(...$result);
     }
 
     public function xor(Set $set): Set
@@ -78,32 +77,41 @@ class DisconnectedSet extends Set
         return array_reduce(
             array_map(
                 fn(ConnectedSet $set): Set => $set->not(),
-                $this->set
+                $this->sets
             ),
-            fn(Set $carry, Set $item): Set => $carry->and($item)
+            fn(Set $carry, Set $item): Set => $carry->and($item),
+            new ConnectedSet(
+                new LeftBoundary(Boundary::MINUS_INFINITY),
+                new RightBoundary(Boundary::PLUS_INFINITY)
+            )
         );
     }
 
+    /**
+     * @psalm-suppress PossiblyInvalidArgument
+     */
     public function length(): DateInterval|string
     {
-        $counter = clone $reference = (new DateTime())->setTimestamp(0);
+        $accum = clone $reference = (new DateTime())->setTimestamp(0);
 
         foreach ($this->sets as $set) {
             if (Set::INFINITY === $length = $set->length()) {
                 return Set::INFINITY;
             }
 
-            $counter->add($length);
+            $accum->add($length);
         }
 
-        return $reference->diff($counter);
+        return $reference->diff($accum);
     }
 
-    public function shift(DateInterval $interval): Set
+    public function shift(DateInterval $interval): self
     {
-        return array_map(
-            fn(Set $set): Set => $set->shift($interval),
-            $this->sets
-        );
+        return new self(
+            ...array_map(
+                fn(ConnectedSet $set): ConnectedSet => $set->shift($interval),
+                $this->sets
+            )
+        );    
     }
 }
