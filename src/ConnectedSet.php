@@ -17,6 +17,14 @@ class ConnectedSet implements Set
     {
     }
 
+    public static function createPoint(DateTimeImmutable $point): self
+    {
+        return new self(
+            new LeftBoundary($point),
+            new RightBoundary($point)
+        );
+    }
+
     //private function proxyToArgument(Set $set): bool
     //{
         //$className = $set::class;
