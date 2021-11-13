@@ -5,6 +5,7 @@ namespace SN1054\Timeset;
 use DateTimeInterface;
 use DateTimeImmutable;
 use DateTime;
+use Exception;
 
 class LeftBoundary extends Boundary
 {

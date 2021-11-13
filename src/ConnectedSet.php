@@ -93,7 +93,7 @@ class ConnectedSet extends Set
                 return new EmptySet();
                 break;
             case 1:
-                return new ConnectedSet($result[0]);
+                return $result[0];
                 break;
             default:
                 return new DisconnectedSet(...$result);

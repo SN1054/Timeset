@@ -3,6 +3,7 @@
 namespace SN1054\Timeset;
 
 use DateInterval;
+use DateTime;
 use Exception;
 
 class DisconnectedSet extends Set

@@ -21,6 +21,6 @@ class EmptySet extends Set
 
     public function not(): ConnectedSet
     {
-        return new ConnectedSet(Set::MINUS_INFINITY, Set::PLUS_INFINITY);
+        return new ConnectedSet(Boundary::MINUS_INFINITY, Boundary::PLUS_INFINITY);
     }
 }
