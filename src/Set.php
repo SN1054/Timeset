@@ -42,9 +42,9 @@ abstract class Set
 
             if (is_array($value)) {
                 if (
-                    (!self::stringHasValidFormat($value[0]) 
+                    (!self::stringHasValidFormat($value[0])
                         && !($value[0] instanceof DateTimeInterface)
-                    ) || (!self::stringHasValidFormat($value[1]) 
+                    ) || (!self::stringHasValidFormat($value[1])
                         && !($value[1] instanceof DateTimeInterface)
                     ) || count($value) !== 2
                 ) {
@@ -83,8 +83,8 @@ abstract class Set
 
         $sets = self::normalize(...$sets);
 
-        return count($sets) === 1 
-            ? $sets[0] 
+        return count($sets) === 1
+            ? $sets[0]
             : new DisconnectedSet(...$sets);
     }
 
@@ -100,13 +100,7 @@ abstract class Set
 
     public static function normalize(ConnectedSet ...$sets): array
     {
-        usort($sets, function($a, $b) {
-            if ($a->leftBoundary()->equal($b->leftBoundary())) {
-                return 0;
-            }
-
-            return $a->leftBoundary()->lessThan($b->leftBoundary()) ? -1 : 1; 
-        });
+        $sets = ConnectedSet::sort(...$sets);
 
         for ($i = 0; $i < array_key_last($sets); $i++) {
             if (false === $sets[$i]->and($sets[$i + 1])->isEmpty()) {

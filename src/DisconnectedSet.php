@@ -36,7 +36,7 @@ class DisconnectedSet extends Set
         /** @var DisconnectedSet $set */
         return Set::create(...array_merge($this->sets(), $set->sets()));
     }
-    
+
     public function and(Set $set): Set
     {
         if ($set instanceof EmptySet || $set instanceof ConnectedSet) {
@@ -50,13 +50,13 @@ class DisconnectedSet extends Set
             $temp = $connectedSet->and($set);
 
             switch ($temp::class) {
-            case EmptySet::class:
-                continue 2;
-            case ConnectedSet::class:
-                $result[] = $temp;
-                break;
-            case DisconnectedSet::class:
-                $result = array_merge($result, $temp->sets());
+                case EmptySet::class:
+                    continue 2;
+                case ConnectedSet::class:
+                    $result[] = $temp;
+                    break;
+                case DisconnectedSet::class:
+                    $result = array_merge($result, $temp->sets());
             }
         }
 
@@ -112,6 +112,6 @@ class DisconnectedSet extends Set
                 fn(ConnectedSet $set): ConnectedSet => $set->shift($interval),
                 $this->sets
             )
-        );    
+        );
     }
 }

@@ -4,7 +4,6 @@ namespace SN1054\Timeset;
 
 use DateTimeInterface;
 use DateTimeImmutable;
-use DateTime;
 use DateInterval;
 use Exception;
 
@@ -16,13 +15,12 @@ class LeftBoundary extends Boundary
             if ($point !== self::MINUS_INFINITY) {
                 throw new Exception();
             }
+            $this->point = $point;
 
             $included = false;
+        } else {
+            $this->point = DateTimeImmutable::createFromInterface($point);
         }
-
-        $this->point = $point instanceof DateTime 
-            ? DateTimeImmutable::createFromMutable($point)
-            : $point;
 
         $this->included = $included;
     }
@@ -45,33 +43,27 @@ class LeftBoundary extends Boundary
      */
     public function add(DateInterval $interval): self
     {
-        return $this->isInfinite() 
-            ? clone $this 
+        return $this->isInfinite()
+            ? clone $this
             : new self($this->point->add($interval), $this->included);
     }
 
-
-    // TODO written poorly
     public function lessThan(Boundary $boundary): bool
     {
-        if ($this->point == self::MINUS_INFINITY) {
-            return $boundary->point() !== self::MINUS_INFINITY;
+        if ($boundary->point() === self::MINUS_INFINITY) {
+            return false;
         }
 
-        if ($this->point < $boundary->point()) {
+        if (
+            $this->isInfinite()
+            || $boundary->point() === self::PLUS_INFINITY
+            || $this->point < $boundary->point()
+        ) {
             return true;
         }
 
-        if ($this->equal($boundary)) {
-            return false;
-        }
-
-        if ($this->point == $boundary->point()) {
-            if ($boundary::class == $this::class) {
-                return $this->included;
-            }
-
-            return false;
+        if ($boundary instanceof LeftBoundary) {
+            return $this->point == $boundary->point() && $this->included && !$boundary->included();
         }
 
         return false;

@@ -16,13 +16,12 @@ class RightBoundary extends Boundary
             if ($point !== self::PLUS_INFINITY) {
                 throw new Exception();
             }
+            $this->point = $point;
 
             $included = false;
+        } else {
+            $this->point = DateTimeImmutable::createFromInterface($point);
         }
-
-        $this->point = $point instanceof DateTime 
-            ? DateTimeImmutable::createFromMutable($point)
-            : $point;
 
         $this->included = $included;
     }
@@ -45,35 +44,31 @@ class RightBoundary extends Boundary
      */
     public function add(DateInterval $interval): self
     {
-        return $this->isInfinite() 
-            ? clone $this 
+        return $this->isInfinite()
+            ? clone $this
             : new self($this->point->add($interval), $this->included);
     }
 
-
-    // TODO written poorly
     public function lessThan(Boundary $boundary): bool
     {
-        if ($this->point == self::PLUS_INFINITY) {
+        if (
+            $this->isInfinite()
+            || $boundary->point() === self::MINUS_INFINITY
+        ) {
             return false;
         }
 
-        if ($this->point < $boundary->point()) {
+        if (
+            $boundary->point() === self::PLUS_INFINITY
+            || $this->point < $boundary->point()
+        ) {
             return true;
         }
 
-        if ($this->equal($boundary)) {
-            return false;
+        if ($boundary instanceof RightBoundary) {
+            return $this->point == $boundary->point && !$this->included && $boundary->included();
+        } else {
+            return $this->point == $boundary->point && (!$this->included || !$boundary->included());
         }
-
-        if ($this->point == $boundary->point()) {
-            if ($boundary::class == $this::class) {
-                return !$this->included;
-            }
-
-            return false;
-        }
-
-        return false;
     }
 }

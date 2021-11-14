@@ -8,7 +8,7 @@ class EmptySet extends Set
     {
         return $set;
     }
-    
+
     public function and(Set $set): EmptySet
     {
         return new self();
@@ -21,6 +21,9 @@ class EmptySet extends Set
 
     public function not(): ConnectedSet
     {
-        return new ConnectedSet(Boundary::MINUS_INFINITY, Boundary::PLUS_INFINITY);
+        return new ConnectedSet(
+            new LeftBoundary(Boundary::MINUS_INFINITY),
+            new RightBoundary(Boundary::PLUS_INFINITY)
+        );
     }
 }

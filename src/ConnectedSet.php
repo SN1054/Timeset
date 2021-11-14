@@ -14,12 +14,13 @@ class ConnectedSet extends Set
         private LeftBoundary $leftBoundary,
         private RightBoundary $rightBoundary
         //TODO check for consistency of point
-    ) 
-    {
+    ) {
     }
 
-    public static function createPoint(DateTimeImmutable $point): self
+    public static function createPoint(DateTimeInterface $point): self
     {
+        $point = DateTimeImmutable::createFromInterface($point);
+
         return new self(
             new LeftBoundary($point),
             new RightBoundary($point)
@@ -52,32 +53,36 @@ class ConnectedSet extends Set
 
     private function orForConnected(ConnectedSet $set): Set
     {
-        extract($this->sort($set));
+        list($first, $second) = $this->sort($set, $this);
 
-        if ($first->rightBoundary()->lessThan($second->leftBoundary())){
+        if ($first->rightBoundary()->lessThan($second->leftBoundary())) {
             return new DisconnectedSet($first, $second);
         }
 
-        $rightBoundary = $this->rightBoundary->greaterThanOrEqual($set->rightBoundary()) 
-            ? $this->rightBoundary 
+        $rightBoundary = $this->rightBoundary->greaterThanOrEqual($set->rightBoundary())
+            ? $this->rightBoundary
             : $set->rightBoundary();
 
         return new ConnectedSet($first->leftBoundary(), $rightBoundary);
     }
 
-    private function sort($set): array
+    public static function sort(ConnectedSet ...$sets): array
     {
-        if ($this->leftBoundary->equal($set->leftBoundary())) {
-            return $this->rightBoundary->lessThanOrEqual($set->rightBoundary())
-                ? ['first' => $this, 'second' => $set]
-                : ['first' => $set, 'second' => $this];
-        }
+        usort($sets, function (ConnectedSet $a, ConnectedSet $b) {
+            if ($a->leftBoundary()->equal($b->leftBoundary())) {
+                if ($a->rightBoundary()->equal($b->rightBoundary())) {
+                    return 0;
+                }
 
-        return $this->leftBoundary->lessThan($set->leftBoundary())
-            ? ['first' => $this, 'second' => $set]
-            : ['first' => $set, 'second' => $this];
+                return $a->rightBoundary()->lessThan($b->rightBoundary()) ? -1 : 1;
+            }
+
+            return $a->leftBoundary()->lessThan($b->leftBoundary()) ? -1 : 1;
+        });
+
+        return $sets;
     }
-    
+
     /**
      * @psalm-suppress PossiblyInvalidArgument
      */
@@ -93,6 +98,8 @@ class ConnectedSet extends Set
 
         /** @var ConnectedSet[] $result */
         $result = [];
+
+        /** @var DisconnectedSet $set */
         foreach ($set->sets() as $connectedSet) {
             if (false === ($element = $this->andForConnected($connectedSet))->isEmpty()) {
                 $result[] = $element;
@@ -113,9 +120,9 @@ class ConnectedSet extends Set
 
     private function andForConnected(ConnectedSet $set): ConnectedSet|EmptySet
     {
-        extract($this->sort($set));
+        list($first, $second) = $this->sort($set, $this);
 
-        if ($first->rightBoundary()->lessThan($second->leftBoundary())){
+        if ($first->rightBoundary()->lessThan($second->leftBoundary())) {
             return new EmptySet();
         }
 
@@ -136,43 +143,48 @@ class ConnectedSet extends Set
 
     public function not(): Set
     {
-        if ($this->leftBoundary->point() == Boundary::MINUS_INFINITY
-            && $this->rightBoundary->point() == Boundary::PLUS_INFINITY
+        if (
+            $this->leftBoundary->isInfinite()
+            && $this->rightBoundary->isInfinite()
         ) {
             return new EmptySet();
         }
 
-        if ($this->leftBoundary->point() == Boundary::MINUS_INFINITY) {
+        if ($this->leftBoundary->isInfinite()) {
             return new ConnectedSet(
-                new LeftBoundary($this->rightBoundary->point(), !$this->rightBoundary->included()),
+                $this->rightBoundary->invert(),
                 new RightBoundary(Boundary::PLUS_INFINITY)
             );
         }
 
-        if ($this->rightBoundary->point() == Boundary::PLUS_INFINITY) {
+        if ($this->rightBoundary->isInfinite()) {
             return new ConnectedSet(
                 new LeftBoundary(Boundary::MINUS_INFINITY),
-                new RightBoundary($this->leftBoundary->point(), !$this->leftBoundary->included())
+                $this->leftBoundary->invert()
             );
         }
 
         return new DisconnectedSet(
             new ConnectedSet(
                 new LeftBoundary(Boundary::MINUS_INFINITY),
-                new RightBoundary($this->leftBoundary->point(), !$this->leftBoundary->included())
+                $this->leftBoundary->invert()
             ),
             new ConnectedSet(
-                new LeftBoundary($this->rightBoundary->point(), $this->rightBoundary->included()),
+                $this->rightBoundary->invert(),
                 new RightBoundary(Boundary::PLUS_INFINITY)
             )
         );
     }
 
+    /**
+     * @psalm-suppress PossiblyInvalidArgument
+     * @psalm-suppress PossiblyInvalidMethodCall
+     */
     public function length(): DateInterval|string
     {
         if (
-            $this->leftBoundary->point() == Boundary::MINUS_INFINITY
-            && $this->rightBoundary->point() == Boundary::PLUS_INFINITY
+            $this->leftBoundary->isInfinite()
+            || $this->rightBoundary->isInfinite()
         ) {
             return Set::INFINITY;
         }
@@ -182,36 +194,9 @@ class ConnectedSet extends Set
 
     public function shift(DateInterval $interval): ConnectedSet
     {
-        //TODO Move all this logic to Boundary class. Boundary needs isInfinite() and add() methods
-        if ($this->leftBoundary->point() == Boundary::MINUS_INFINITY) {
-            return new ConnectedSet(
-                $this->leftBoundary,
-                new RightBoundary(
-                    $this->rightBoundary->add($interval), 
-                    $this->rightBoundary->included()
-                )
-            );
-        }
-
-        if ($this->rightBoundary->point() == Boundary::PLUS_INFINITY) {
-            return new ConnectedSet(
-                new LeftBoundary(
-                    $this->leftBoundary->add($interval), 
-                    $this->leftBoundary->included()
-                ),
-                $this->rightBoundary
-            );
-        }
-
         return new ConnectedSet(
-            new LeftBoundary(
-                $this->leftBoundary->add($interval), 
-                $this->leftBoundary->included()
-            ),
-            new RightBoundary(
-                $this->rightBoundary->add($interval), 
-                $this->rightBoundary->included()
-            )
+            $this->leftBoundary->add($interval),
+            $this->rightBoundary->add($interval)
         );
     }
 
