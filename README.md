@@ -1,6 +1,6 @@
 # Timeset
  Timeset is a package that helps dealing with time intervals in PHP.
- Time intervals are considered as sets on [real line](https://en.wikipedia.org/wiki/Real_line). Aside from a few auxilary operations, only 4 basic operations are supported: OR, AND, XOR, NOT. [Others](https://en.wikipedia.org/wiki/Set_(mathematics)#Basic_operations) can berived from those.
+ Time intervals are considered as sets on [real line](https://en.wikipedia.org/wiki/Real_line). Aside from a few auxilary operations, only 4 basic operations are supported: OR, AND, XOR, NOT. [Others](https://en.wikipedia.org/wiki/Set_(mathematics)#Basic_operations) can be derived from those.
 
 ## Features
 
