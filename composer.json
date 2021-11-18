@@ -4,7 +4,13 @@
             "SN1054\\Timeset\\": "src/" 
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "SN1054\\Timeset\\Test\\": "tests/"
+        }
+    },
     "require-dev": {
-        "vimeo/psalm": "^4.12"
+        "vimeo/psalm": "^4.12",
+        "phpunit/phpunit": "^9.5"
     }
 }
