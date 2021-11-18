@@ -1,5 +1,5 @@
 {
-    "name": "sn1054/timeset",
+    "name": "timeset/timeset",
     "license": "Apache-2.0",
     "type": "library",
     "description": "Package for time intervals manipulation",
