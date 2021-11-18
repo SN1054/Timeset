@@ -53,7 +53,7 @@ class ConnectedSet extends Set
 
     private function orForConnected(ConnectedSet $set): Set
     {
-        list($first, $second) = $this->sort($set, $this);
+        list($first, $second) = self::sort($set, $this);
 
         if ($first->rightBoundary()->lessThan($second->leftBoundary())) {
             return new DisconnectedSet($first, $second);
@@ -120,13 +120,17 @@ class ConnectedSet extends Set
 
     private function andForConnected(ConnectedSet $set): ConnectedSet|EmptySet
     {
-        list($first, $second) = $this->sort($set, $this);
+        list($first, $second) = self::sort($set, $this);
 
         if ($first->rightBoundary()->lessThan($second->leftBoundary())) {
             return new EmptySet();
         }
 
-        return new ConnectedSet($second->leftBoundary(), $first->rightBoundary());
+        if ($first->rightBoundary()->lessThan($second->rightBoundary())) {
+            return new ConnectedSet($second->leftBoundary(), $first->rightBoundary());
+        }
+
+        return clone $second;
     }
 
     public function xor(Set $set): Set
