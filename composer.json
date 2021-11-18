@@ -1,4 +1,16 @@
 {
+    "name": "timeset/timeset",
+    "license": "Apache-2.0",
+    "type": "library",
+    "description": "Package for time intervals manipulation",
+    "keywords": ["date", "time", "interval", "set"],
+    "require": {
+        "php": "^8.0"
+    },
+    "require-dev": {
+        "vimeo/psalm": "^4.12",
+        "phpunit/phpunit": "^9.5"
+    },
     "autoload": {
         "psr-4": {
             "SN1054\\Timeset\\": "src/" 
@@ -8,9 +20,5 @@
         "psr-4": {
             "SN1054\\Timeset\\Test\\": "tests/"
         }
-    },
-    "require-dev": {
-        "vimeo/psalm": "^4.12",
-        "phpunit/phpunit": "^9.5"
     }
 }
