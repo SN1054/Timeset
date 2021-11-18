@@ -14,8 +14,11 @@ abstract class Boundary
     public const PLUS_INFINITY = 'plus_infinity';
 
     abstract public function lessThan(Boundary $boundary): bool;
+
     abstract public function isInfinite(): bool;
+
     abstract public function invert(): self;
+
     abstract public function add(DateInterval $interval): self;
 
     public function point(): DateTimeImmutable|string
@@ -28,7 +31,6 @@ abstract class Boundary
         return $this->included;
     }
 
-    //TODO order methods
     public function equal(Boundary $boundary): bool
     {
         return $boundary->point() == $this->point() && $boundary->included() == $this->included();

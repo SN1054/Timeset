@@ -15,7 +15,10 @@ class DisconnectedSet extends Set
 
     public function __construct(ConnectedSet ...$sets)
     {
-        if ($sets !== Set::normalize(...$sets)) {
+        if (
+            $sets !== Set::normalize(...$sets)
+            || count($sets) < 2
+        ) {
             throw new Exception();
         }
 
@@ -34,7 +37,7 @@ class DisconnectedSet extends Set
         }
 
         /** @var DisconnectedSet $set */
-        return Set::create(...array_merge($this->sets(), $set->sets()));
+        return Set::create(array_merge($this->sets(), $set->sets()));
     }
 
     public function and(Set $set): Set
@@ -60,7 +63,7 @@ class DisconnectedSet extends Set
             }
         }
 
-        return new self(...$result);
+        return Set::create($result);
     }
 
     public function xor(Set $set): Set
