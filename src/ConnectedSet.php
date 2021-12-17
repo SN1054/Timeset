@@ -147,8 +147,7 @@ class ConnectedSet extends Set
 
     public function not(): Set
     {
-        if (
-            $this->leftBoundary->isInfinite()
+        if ($this->leftBoundary->isInfinite()
             && $this->rightBoundary->isInfinite()
         ) {
             return new EmptySet();
@@ -186,8 +185,7 @@ class ConnectedSet extends Set
      */
     public function length(): DateInterval|string
     {
-        if (
-            $this->leftBoundary->isInfinite()
+        if ($this->leftBoundary->isInfinite()
             || $this->rightBoundary->isInfinite()
         ) {
             return Set::INFINITY;
@@ -207,5 +205,13 @@ class ConnectedSet extends Set
     public function isPoint(): bool
     {
         return $this->leftBoundary->point() == $this->rightBoundary->point();
+    }
+
+    public function toArray(): array
+    {
+        return [
+            (string) $this->leftBoundary,
+            (string) $this->rightBoundary
+        ];
     }
 }

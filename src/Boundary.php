@@ -4,8 +4,9 @@ namespace SN1054\Timeset;
 
 use DateTimeImmutable;
 use DateInterval;
+use Stringable;
 
-abstract class Boundary
+abstract class Boundary implements Stringable
 {
     protected DateTimeImmutable|string $point;
     protected bool $included;
@@ -49,5 +50,17 @@ abstract class Boundary
     public function lessThanOrEqual(Boundary $boundary): bool
     {
         return $this->lessThan($boundary) || $this->equal($boundary);
+    }
+
+    public function __toString(): string
+    {
+        $str = ($this->point instanceof DateTimeImmutable)
+            ? $this->point->format(DateTimeImmutable::ATOM)
+            : $this->point;
+
+        //TODO implement inclusion
+        //$str .= "..$this->included";
+
+        return $str;
     }
 }

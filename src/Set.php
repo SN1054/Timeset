@@ -13,6 +13,7 @@ abstract class Set
     abstract public function and(Set $set): Set;
     abstract public function xor(Set $set): Set;
     abstract public function not(): Set;
+    abstract public function toArray(): array;
 
     public function isEmpty(): bool
     {
@@ -41,8 +42,7 @@ abstract class Set
             }
 
             if (is_array($value)) {
-                if (
-                    (!self::stringHasValidFormat($value[0])
+                if ((!self::stringHasValidFormat($value[0])
                         && !($value[0] instanceof DateTimeInterface)
                     ) || (!self::stringHasValidFormat($value[1])
                         && !($value[1] instanceof DateTimeInterface)

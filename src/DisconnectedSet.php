@@ -15,8 +15,7 @@ class DisconnectedSet extends Set
 
     public function __construct(ConnectedSet ...$sets)
     {
-        if (
-            $sets !== Set::normalize(...$sets)
+        if ($sets !== Set::normalize(...$sets)
             || count($sets) < 2
         ) {
             throw new Exception();
@@ -116,5 +115,16 @@ class DisconnectedSet extends Set
                 $this->sets
             )
         );
+    }
+
+    public function toArray(): array
+    {
+        $res = [];
+
+        foreach ($this->sets as $set) {
+            $res[] = $set->toArray();
+        }
+
+        return $res;
     }
 }

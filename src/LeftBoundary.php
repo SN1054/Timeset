@@ -54,8 +54,7 @@ class LeftBoundary extends Boundary
             return false;
         }
 
-        if (
-            $this->isInfinite()
+        if ($this->isInfinite()
             || $boundary->point() === self::PLUS_INFINITY
             || $this->point < $boundary->point()
         ) {
