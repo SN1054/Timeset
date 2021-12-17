@@ -26,4 +26,9 @@ class EmptySet extends Set
             new RightBoundary(Boundary::PLUS_INFINITY)
         );
     }
+
+    public function toArray(): array
+    {
+        return [];
+    }
 }
