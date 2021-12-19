@@ -122,7 +122,7 @@ class DisconnectedSet extends Set
         $res = [];
 
         foreach ($this->sets as $set) {
-            $res[] = $set->toArray();
+            $res[] = $set->toArray()[0];
         }
 
         return $res;

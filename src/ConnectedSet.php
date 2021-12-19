@@ -210,8 +210,10 @@ class ConnectedSet extends Set
     public function toArray(): array
     {
         return [
-            (string) $this->leftBoundary,
-            (string) $this->rightBoundary
+            [
+                (string) $this->leftBoundary,
+                (string) $this->rightBoundary
+            ]
         ];
     }
 }
