@@ -59,4 +59,8 @@ class EmptySetTest extends TestCase
         $this->assertSame($this->disconnectedSet, $this->emptySet->xor($this->disconnectedSet));
     }
 
+    public function testToArray(): void
+    {
+        $this->assertEmpty($this->emptySet->toArray());
+    }
 }

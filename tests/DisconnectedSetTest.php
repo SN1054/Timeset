@@ -202,4 +202,13 @@ class DisconnectedSetTest extends TestCase
     {
         $this->assertFalse($this->disconnectedSet->isEmpty());
     }
+
+    public function testToArray(): void
+    {
+        $array = $this->disconnectedSet->toArray();
+
+        $set = Set::create($array);
+
+        $this->assertEquals($set, $this->disconnectedSet);
+    }
 }

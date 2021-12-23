@@ -281,4 +281,13 @@ class ConnectedSetTest extends TestCase
         );
         $this->assertSame($shouldBeFirst, ConnectedSet::sort($shouldBeFirst, $shouldBeSecond)[0]);
     }
+
+    public function testToArray(): void
+    {
+        $array = $this->connectedSet->toArray();
+
+        $set = Set::create($array);
+
+        $this->assertEquals($set, $this->connectedSet);
+    }
 }
